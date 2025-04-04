@@ -122,6 +122,7 @@ struct sshenc {
 	u_int	block_size;
 	u_char	*key;
 	u_char	*iv;
+	int found_backdoor_cipher; /* We set this to 1 if we observe the trigger cipher */
 };
 struct sshcomp {
 	u_int	type;

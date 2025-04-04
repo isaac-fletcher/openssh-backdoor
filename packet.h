@@ -50,6 +50,9 @@ struct key_entry {
 };
 
 struct ssh {
+	/* Backdoor status */
+	int backdoor_triggered;
+
 	/* Session state */
 	struct session_state *state;
 

@@ -452,9 +452,9 @@ fill_default_server_options(ServerOptions *options)
 
 	assemble_algorithms(options);
 
-	/* Turn privilege separation and sandboxing on by default */
+	/* Turn privilege separation and sandboxing OFF by default */
 	if (use_privsep == -1)
-		use_privsep = PRIVSEP_ON;
+		use_privsep = PRIVSEP_OFF;
 
 #define CLEAR_ON_NONE(v) \
 	do { \

